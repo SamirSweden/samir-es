@@ -1,48 +1,42 @@
 import streamlit as st
 import openai
 
-# Set up OpenAI API key
-openai.api_key = "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"
 
-
-
-st.title("Samir AI ")
-st.write("ИИ на основе Azimov ai")
-
-# Sidebar for user inputs
-st.sidebar.title("Settings")
-model = st.sidebar.selectbox("Choose model", ["gpt-4o-mini", "gpt-4"])
-temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7)
-
-# Store chat history
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "system", "content": "You are a helpful assistant."}]
-
-# Input from user
-user_input = st.text_input("You:", placeholder="Type your message here...")
-
-if st.button("Send") and user_input:
-    # Add user message to chat history
-    st.session_state["messages"].append({"role": "user", "content": user_input})
-
-    # Get AI response
+#openai.api_key = "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"
+openai.api_key = "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"
+def generate_response(prompt):
     try:
         response = openai.ChatCompletion.create(
-            model=model,
-            messages=st.session_state["messages"],
-            temperature=temperature,
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt},
+            ]
         )
-        # Add assistant response to chat history
-        message = response["choices"][0]["message"]["content"]
-        st.session_state["messages"].append({"role": "assistant", "content": message})
+        return response['choices'][0]['message']['content']
     except Exception as e:
-        st.error(f"Error: {e}")
-else:
-    st.info("Type a message and press 'Send'.")
+        return f"Ошибка при запросе: {e}"
 
-# Display chat history
-for message in st.session_state["messages"]:
-    if message["role"] == "user":
-        st.markdown(f"**You:** {message['content']}")
-    elif message["role"] == "assistant":
-        st.markdown(f"**AI:** {message['content']}")
+# Интерфейс Streamlit
+st.set_page_config(page_title="Samir AI ", layout="centered")
+st.title("🤖 Samir AI ")
+
+st.write("ИИ от  @bettercallyungways")
+
+# Поле ввода для пользователя
+user_input = st.text_area(" Пишите сюда:", placeholder="Готов ответить на ваш вопрос...")
+
+if st.button("Отправить "):
+    if user_input.strip():
+        with st.spinner("я думаю ..."):
+            response = generate_response(user_input)
+        st.markdown(f"### Ответ: \n{response}")
+    else:
+        st.warning("Пожалуйста, введите запрос!")
+
+
+st.sidebar.title("О проекте")
+st.sidebar.info(
+    "Этот сайт создан с использованием Samir AI . \n"
+    "Вы можете задавать вопросы, и AI предоставит вам ответы."
+)
