@@ -1,19 +1,24 @@
 import streamlit as st
 import openai
+from openai import OpenAI, api_key
 
 
-#openai.api_key = "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"
-openai.api_key = "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"
+
+client  = OpenAI (api_key = "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")
 def generate_response(prompt):
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You answer question about Web services."},
                 {"role": "user", "content": prompt},
-            ]
+            ],
+            temperature=0
         )
-        return response['choices'][0]['message']['content']
+        response_dict = response.model_dump()  # <--- convert to dictionary
+        response_message = response_dict["choices"][0]["message"]["content"]
+
+        message_content = response["messages"][0]["message"]['content']
     except Exception as e:
         return f"Ошибка при запросе: {e}"
 
