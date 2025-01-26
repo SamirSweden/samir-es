@@ -1,40 +1,48 @@
-import openai
 import streamlit as st
-from streamlit import title
+import openai
 
-st.set_page_config(page_title="Samir AI | DevOps")
-openai.api_key = "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"
-
-
-st.title("Powered by Samir AI")
-st.subheader("искусственный интеллект  от https://t.me/bettercallyungways")
+# Set up OpenAI API key
+openai.api_key = "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"
 
 
-user_input = st.text_area("Type here", placeholder="Ask SamirAI | Слышь дядя спрашивай что хочешь я отвечу ")
 
-# Если пользователь отправляет запрос
+st.title("Samir AI ")
+st.write("ИИ на основе Azimov ai")
 
-if st.button("Send request"):
-    if user_input.strip():
-        try:
-          with  st.spinner("Даю ответ"):
-            # Запрос к OpenAI API
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",  # Вы можете использовать "gpt-4", если доступно
-                messages=[
-                    {"role": "system", "content": "Ты полезный ассистент."},
-                    {"role": "user", "content": user_input}
-                ],
-                max_tokens=150,
-                temperature=0.7
-            )
+# Sidebar for user inputs
+st.sidebar.title("Settings")
+model = st.sidebar.selectbox("Choose model", ["gpt-4o-mini", "gpt-4"])
+temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7)
 
-            st.spinner("Даю ответ ")
-            reply = response['choices'][0]['message']['content']
-            st.success("Ответ от Samir AI:")
-            st.write(reply)
+# Store chat history
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "system", "content": "You are a helpful assistant."}]
 
-        except Exception as e:
-            st.error(f"Ошибка: {e}")
-    else:
-        st.warning("[SamirAI] Пожалуйста, введите текст запроса! -> Please ask me ")
+# Input from user
+user_input = st.text_input("You:", placeholder="Type your message here...")
+
+if st.button("Send") and user_input:
+    # Add user message to chat history
+    st.session_state["messages"].append({"role": "user", "content": user_input})
+
+    # Get AI response
+    try:
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=st.session_state["messages"],
+            temperature=temperature,
+        )
+        # Add assistant response to chat history
+        message = response["choices"][0]["message"]["content"]
+        st.session_state["messages"].append({"role": "assistant", "content": message})
+    except Exception as e:
+        st.error(f"Error: {e}")
+else:
+    st.info("Type a message and press 'Send'.")
+
+# Display chat history
+for message in st.session_state["messages"]:
+    if message["role"] == "user":
+        st.markdown(f"**You:** {message['content']}")
+    elif message["role"] == "assistant":
+        st.markdown(f"**AI:** {message['content']}")
