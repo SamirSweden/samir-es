@@ -1,56 +1,50 @@
 import streamlit as st
 from openai import OpenAI
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
+client = OpenAI(api_key="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")
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# Set your OpenAI API key
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+# Streamlit app configuration
+st.set_page_config(page_title="Samir AI", layout="centered")
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+# App title
+st.title("🤖 Samir AI")
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+# Chatbot instructions
+st.write("Спрашивай человек. 😊")
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+# Initialize session state for chat history
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "system", "content": "You are a helpful assistant."}]
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
+# User input
+user_input = st.text_input("Вы:", placeholder="Отвечу на все вопросы ...")
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+# If the user enters a message
+if user_input:
+    # Append user message to chat history
+    st.session_state["messages"].append({"role": "user", "content": user_input})
+
+    # Generate response from OpenAI
+    with st.spinner("Samir AI думает ..."):
+        response = client.chat.completions.create(model="gpt-4o-mini",
+        messages=st.session_state["messages"])
+        reply = response.choices[0].message.content
+        st.session_state["messages"].append({"role": "assistant", "content": reply})
+
+    # Clear the input field
+    st.text_input("You:", placeholder="Type your message here...", value="", key="new_input")
+
+# Display chat history
+for message in st.session_state["messages"]:
+    if message["role"] == "user":
+        st.write(f"**You:** {message['content']}")
+    elif message["role"] == "assistant":
+        st.write(f"**Samir AI:** {message['content']}")
+
+# Optional: Reset chat history
+if st.button("Отправить "):
+    st.session_state["messages"] = [{"role": "system", "content": "You are a helpful assistant."}]
+    #st.experimental_rerun()
