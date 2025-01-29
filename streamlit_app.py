@@ -1,7 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 def generate_response(prompt):
     try:
